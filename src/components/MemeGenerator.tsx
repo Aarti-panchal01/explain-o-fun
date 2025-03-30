@@ -24,6 +24,14 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
   const [isLiked, setIsLiked] = useState(false);
   const [funnyMeter, setFunnyMeter] = useState(Math.floor(Math.random() * 100));
   
+  const funnyTags = [
+    "That's what she said!",
+    "Mom's spaghetti",
+    "No cap, fr fr",
+    "This is peak comedy",
+    "Literally me"
+  ];
+  
   const regenerateMeme = () => {
     setIsRegenerating(true);
     
@@ -162,7 +170,7 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
         
         {/* Random funny tag */}
         <div className="text-xs text-center text-muted-foreground italic">
-          "{["That's what she said!", "Mom's spaghetti", "No cap, fr fr", "This is peak comedy", "Literally me"][Math.floor(Math.random() * 5)]}"
+          "{funnyTags[Math.floor(Math.random() * funnyTags.length)]}"
         </div>
       </CardContent>
       <style dangerouslySetInnerHTML={{

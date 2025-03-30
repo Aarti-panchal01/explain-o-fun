@@ -1,8 +1,9 @@
+
 import { FC, useState } from 'react';
 import { TikTokContent } from '../types/explanation';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Volume2, Download, Share2, Play, RefreshCw, Heart, MessageSquare, ThumbsUp } from "lucide-react";
+import { Volume2, Download, Share2, Play, RefreshCw, Heart, MessageSquare, BookmarkIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface TikTokPreviewProps {
@@ -93,42 +94,54 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
     }
     setIsLiked(!isLiked);
   };
+
+  // Parse the script to separate normal text and action text (in parentheses)
+  const renderScript = () => {
+    const parts = content.script.split(/\*([^*]+)\*/);
+    return parts.map((part, index) => {
+      if (index % 2 === 1) {
+        return <p key={index} className="text-pink-400 italic my-2">{part}</p>;
+      }
+      return <p key={index} className="text-white my-1">{part}</p>;
+    });
+  };
   
   return (
-    <Card className="bg-gradient-to-br from-pink-950/80 to-purple-950/80 border border-pink-900/30 backdrop-blur-md animate-fade-in overflow-hidden max-w-md mx-auto text-white">
-      <div className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 py-2 px-4 flex items-center justify-between">
+    <Card className="bg-[#121212] border-none overflow-hidden max-w-md mx-auto text-white">
+      {/* TikTok header */}
+      <div className="bg-[#1d1d1d] py-3 px-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-xl">{getEmojiForStyle()}</span>
-          <h3 className="font-bold text-gradient">TikTok Script</h3>
+          <span className="text-xl">🔥</span>
+          <h3 className="font-bold text-white">TikTok</h3>
         </div>
         <Button 
-          variant={isPlaying ? "default" : "ghost"} 
+          variant="ghost" 
           size="icon" 
-          className={isPlaying ? "bg-pink-500 text-white" : "text-muted-foreground"}
+          className="text-white"
           onClick={speakScript}
         >
-          {isPlaying ? (
-            <RefreshCw className="w-4 h-4 animate-spin" />
-          ) : (
-            <Play className="w-4 h-4" />
-          )}
+          <Play className="w-4 h-4 fill-white" />
         </Button>
       </div>
       
-      <CardContent className="p-6">
-        <div className="mb-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
+      <CardContent className="p-0">
+        {/* Main content area with dark background */}
+        <div className="relative bg-[#121212] min-h-[400px] flex flex-col">
+          {/* User profile and follow button */}
+          <div className="flex items-center gap-3 p-4 border-b border-gray-800">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white text-xl">
               {getEmojiForStyle()}
             </div>
             <div className="flex flex-col">
-              <span className="text-white font-semibold text-sm">@aceinfinity</span>
-              <span className="text-xs text-gray-300">{topic.substring(0, 15)}...</span>
+              <div className="flex items-center gap-1">
+                <span className="text-white font-bold">@aceinfinity</span>
+                <span className="text-xs text-gray-400">{topic.length > 15 ? topic.substring(0, 15) + '...' : topic}</span>
+              </div>
             </div>
             <Button
               size="sm"
               variant={isFollowing ? "default" : "outline"}
-              className={`ml-auto text-xs px-3 py-1 h-7 ${isFollowing ? 'bg-pink-500 hover:bg-pink-600' : 'border-pink-500 text-pink-400'}`}
+              className={`ml-auto text-sm h-8 rounded-full px-4 ${isFollowing ? 'bg-gray-700 hover:bg-gray-600' : 'border border-[#FE2C55] text-[#FE2C55]'}`}
               onClick={() => {
                 setIsFollowing(!isFollowing);
                 toast({
@@ -142,83 +155,78 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
             </Button>
           </div>
           
-          <div className="bg-pink-950/30 p-4 rounded-lg border border-pink-900/30 mb-3">
-            {content.script.split('*').map((part, index) => {
-              if (index % 2 === 1) {
-                return <span key={index} className="italic text-pink-300 block my-2">({part})</span>;
-              }
-              return <span key={index} className="text-white">{part}</span>;
-            })}
+          {/* Video content (simulated with text) */}
+          <div className="p-4 flex-grow">
+            <div className="mb-3">
+              {renderScript()}
+            </div>
+            
+            {/* Hashtags */}
+            <div className="flex flex-wrap gap-1 mt-3">
+              {content.hashtags.map((hashtag, index) => (
+                <span key={index} className="text-[#5F9FFF] text-sm font-medium">{hashtag}</span>
+              ))}
+            </div>
           </div>
           
-          <div className="flex flex-wrap gap-1 mt-3">
-            {content.hashtags.map((hashtag, index) => (
-              <span key={index} className="text-blue-400 text-sm font-medium">{hashtag}</span>
-            ))}
-          </div>
-        </div>
-        
-        <div className="flex justify-between items-center pt-2 border-t border-pink-900/30 mt-2">
-          <div className="flex items-center gap-5">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={`text-sm gap-1 p-0 ${isLiked ? 'text-pink-500' : 'text-pink-200 hover:text-white'} hover:bg-transparent`}
+          {/* Right side action buttons */}
+          <div className="absolute right-3 bottom-20 flex flex-col gap-5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`rounded-full bg-transparent w-12 h-12 p-0 flex flex-col items-center`}
               onClick={handleLike}
             >
-              <Heart className={`w-5 h-5 ${isLiked ? 'fill-pink-500' : ''}`} />
-              <span>{likeCount.toLocaleString()}</span>
+              <Heart className={`w-8 h-8 ${isLiked ? 'fill-[#FE2C55] text-[#FE2C55]' : 'text-white'}`} />
+              <span className="text-xs text-white mt-1">{likeCount.toLocaleString()}</span>
             </Button>
             
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-sm gap-1 p-0 text-pink-200 hover:text-white hover:bg-transparent"
-              onClick={() => toast({
-                title: "Comments",
-                description: "Comments section would open here",
-                duration: 1500,
-              })}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full bg-transparent w-12 h-12 p-0 flex flex-col items-center"
             >
-              <MessageSquare className="w-5 h-5" />
-              <span>{Math.floor(Math.random() * 1000) + 100}</span>
+              <MessageSquare className="w-8 h-8 text-white" />
+              <span className="text-xs text-white mt-1">{Math.floor(Math.random() * 1000) + 100}</span>
             </Button>
             
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-sm gap-1 p-0 text-pink-200 hover:text-white hover:bg-transparent"
-              onClick={speakScript}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full bg-transparent w-12 h-12 p-0 flex flex-col items-center"
             >
-              <Volume2 className="w-5 h-5" />
+              <BookmarkIcon className="w-8 h-8 text-white" />
+              <span className="text-xs text-white mt-1">Save</span>
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full bg-transparent w-12 h-12 p-0 flex flex-col items-center"
+              onClick={copyToClipboard}
+            >
+              <Share2 className="w-8 h-8 text-white" />
+              <span className="text-xs text-white mt-1">Share</span>
             </Button>
           </div>
           
-          <div className="flex gap-2">
+          {/* Bottom music player (simulated) */}
+          <div className="flex items-center justify-between p-3 border-t border-gray-800 bg-[#1d1d1d]">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center animate-spin-slow">
+                ♪
+              </div>
+              <div className="text-sm truncate max-w-[200px]">
+                {topic} - @aceinfinity
+              </div>
+            </div>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-sm gap-1 text-pink-200 hover:text-white hover:bg-pink-800/50"
-              onClick={() => {
-                navigator.clipboard.writeText(content.script);
-                toast({
-                  title: "Script copied",
-                  description: "TikTok script has been copied to clipboard.",
-                  duration: 1500,
-                });
-              }}
+              className="text-white"
+              onClick={speakScript}
             >
-              <Download className="w-3 h-3" />
-              <span>Save</span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-sm gap-1 text-pink-200 hover:text-white hover:bg-pink-800/50"
-              onClick={copyToClipboard}
-            >
-              <Share2 className="w-3 h-3" />
-              <span>Share</span>
+              <Volume2 className="w-4 h-4" />
             </Button>
           </div>
         </div>
