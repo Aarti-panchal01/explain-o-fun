@@ -1,10 +1,9 @@
-
 import { FC, useState } from 'react';
 import { TikTokContent } from '../types/explanation';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Volume2, Download, Share2, Play, RefreshCw } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { Volume2, Download, Share2, Play, RefreshCw, Heart, MessageSquare, ThumbsUp } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface TikTokPreviewProps {
   content: TikTokContent;
@@ -15,6 +14,9 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
   const { toast } = useToast();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 10000) + 1000);
+  const [isFollowing, setIsFollowing] = useState(false);
   
   const getEmojiForStyle = () => {
     switch (content.style) {
@@ -35,14 +37,11 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
         return;
       }
       
-      // Remove directions from the script for speaking
       const cleanScript = content.script.replace(/\*([^*]+)\*/g, '');
       const utterance = new SpeechSynthesisUtterance(cleanScript);
       
-      // Get available voices
       const voices = window.speechSynthesis.getVoices();
       
-      // Set a voice based on persona if available
       if (voices.length > 0) {
         const voiceIndex = Math.min(Math.floor(Math.random() * voices.length), voices.length - 1);
         utterance.voice = voices[voiceIndex];
@@ -81,6 +80,20 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
     });
   };
   
+  const handleLike = () => {
+    if (isLiked) {
+      setLikeCount(likeCount - 1);
+    } else {
+      setLikeCount(likeCount + 1);
+      toast({
+        title: "You liked this TikTok!",
+        description: "Thanks for the love ❤️",
+        duration: 1500,
+      });
+    }
+    setIsLiked(!isLiked);
+  };
+  
   return (
     <Card className="bg-gradient-to-br from-pink-950/80 to-purple-950/80 border border-pink-900/30 backdrop-blur-md animate-fade-in overflow-hidden max-w-md mx-auto text-white">
       <div className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 py-2 px-4 flex items-center justify-between">
@@ -108,16 +121,32 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
               {getEmojiForStyle()}
             </div>
-            <span className="text-white font-semibold text-sm">@aceinfinity</span>
+            <div className="flex flex-col">
+              <span className="text-white font-semibold text-sm">@aceinfinity</span>
+              <span className="text-xs text-gray-300">{topic.substring(0, 15)}...</span>
+            </div>
+            <Button
+              size="sm"
+              variant={isFollowing ? "default" : "outline"}
+              className={`ml-auto text-xs px-3 py-1 h-7 ${isFollowing ? 'bg-pink-500 hover:bg-pink-600' : 'border-pink-500 text-pink-400'}`}
+              onClick={() => {
+                setIsFollowing(!isFollowing);
+                toast({
+                  title: isFollowing ? "Unfollowed" : "Following @aceinfinity",
+                  description: isFollowing ? "You unfollowed this creator" : "You're now following this creator!",
+                  duration: 1500,
+                });
+              }}
+            >
+              {isFollowing ? 'Following' : 'Follow'}
+            </Button>
           </div>
           
           <div className="bg-pink-950/30 p-4 rounded-lg border border-pink-900/30 mb-3">
             {content.script.split('*').map((part, index) => {
-              // If this is a stage direction (odd index)
               if (index % 2 === 1) {
                 return <span key={index} className="italic text-pink-300 block my-2">({part})</span>;
               }
-              // Regular text (even index)
               return <span key={index} className="text-white">{part}</span>;
             })}
           </div>
@@ -129,17 +158,42 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
           </div>
         </div>
         
-        {/* Right side controls */}
         <div className="flex justify-between items-center pt-2 border-t border-pink-900/30 mt-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-sm gap-1 text-pink-200 hover:text-white hover:bg-pink-800/50"
-            onClick={speakScript}
-          >
-            <Volume2 className="w-3 h-3" />
-            <span>Listen</span>
-          </Button>
+          <div className="flex items-center gap-5">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`text-sm gap-1 p-0 ${isLiked ? 'text-pink-500' : 'text-pink-200 hover:text-white'} hover:bg-transparent`}
+              onClick={handleLike}
+            >
+              <Heart className={`w-5 h-5 ${isLiked ? 'fill-pink-500' : ''}`} />
+              <span>{likeCount.toLocaleString()}</span>
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-sm gap-1 p-0 text-pink-200 hover:text-white hover:bg-transparent"
+              onClick={() => toast({
+                title: "Comments",
+                description: "Comments section would open here",
+                duration: 1500,
+              })}
+            >
+              <MessageSquare className="w-5 h-5" />
+              <span>{Math.floor(Math.random() * 1000) + 100}</span>
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-sm gap-1 p-0 text-pink-200 hover:text-white hover:bg-transparent"
+              onClick={speakScript}
+            >
+              <Volume2 className="w-5 h-5" />
+            </Button>
+          </div>
+          
           <div className="flex gap-2">
             <Button 
               variant="ghost" 
@@ -150,7 +204,7 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
                 toast({
                   title: "Script copied",
                   description: "TikTok script has been copied to clipboard.",
-                  duration: 3000,
+                  duration: 1500,
                 });
               }}
             >
