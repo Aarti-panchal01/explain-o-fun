@@ -1,5 +1,4 @@
-
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { Explanation } from '../types/explanation';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,32 @@ interface ExplanationDisplayProps {
 const ExplanationDisplay: FC<ExplanationDisplayProps> = ({ explanation }) => {
   const { toast } = useToast();
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  
+  useEffect(() => {
+    // Load available voices when component mounts
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices();
+      if (availableVoices.length > 0) {
+        setVoices(availableVoices);
+      }
+    };
+
+    // Initial load
+    loadVoices();
+
+    // Set up event listener for when voices change
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    // Cleanup
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
   
   if (!explanation) return null;
 
@@ -51,30 +76,68 @@ const ExplanationDisplay: FC<ExplanationDisplayProps> = ({ explanation }) => {
 
       const utterance = new SpeechSynthesisUtterance(explanation.text);
       
-      // Adjust voice based on persona
-      const voices = window.speechSynthesis.getVoices();
+      // Select voice based on persona
       if (voices.length > 0) {
-        // Try to match a voice to the persona
         let voiceIndex = 0;
+        
+        // Try to find an appropriate voice for the persona
         switch (explanation.persona) {
           case 'professor':
             // Find a more formal sounding voice
-            voiceIndex = voices.findIndex(v => v.name.includes('Google') && v.name.includes('Female')) || 0;
+            voiceIndex = voices.findIndex(v => 
+              v.name.includes('Google') && (v.name.includes('Female') || v.name.includes('f'))
+            );
             break;
           case 'genz':
             // Find a younger sounding voice
-            voiceIndex = voices.findIndex(v => v.name.includes('Google') && v.name.includes('Female')) || 0;
+            voiceIndex = voices.findIndex(v => 
+              v.name.includes('Google') && (v.name.includes('Female') || v.name.includes('f'))
+            );
             break;
           case 'comedian':
             // Find a more expressive voice
-            voiceIndex = voices.findIndex(v => v.name.includes('Google') && v.name.includes('Male')) || 0;
+            voiceIndex = voices.findIndex(v => 
+              v.name.includes('Google') && (v.name.includes('Male') || v.name.includes('m'))
+            );
             break;
           case 'geek':
             // Find a more technical sounding voice
-            voiceIndex = voices.findIndex(v => v.name.includes('Google') && v.name.includes('Male')) || 0;
+            voiceIndex = voices.findIndex(v => 
+              v.name.includes('Google') && (v.name.includes('Male') || v.name.includes('m'))
+            );
             break;
         }
-        utterance.voice = voices[voiceIndex >= 0 ? voiceIndex : 0];
+        
+        // If we found a voice that matches our criteria, use it
+        if (voiceIndex >= 0) {
+          utterance.voice = voices[voiceIndex];
+        } else {
+          // Otherwise just pick one
+          utterance.voice = voices[Math.floor(Math.random() * voices.length)];
+        }
+      }
+      
+      // Adjust speech rate based on persona
+      switch (explanation.persona) {
+        case 'professor':
+          utterance.rate = 0.9; // Slower, more deliberate
+          utterance.pitch = 1.0; // Normal pitch
+          break;
+        case 'genz':
+          utterance.rate = 1.2; // Faster pace
+          utterance.pitch = 1.1; // Slightly higher pitch
+          break;
+        case 'comedian':
+          utterance.rate = 1.0; // Normal rate with more variation
+          utterance.pitch = 1.2; // More animated
+          break;
+        case 'geek':
+          utterance.rate = 1.1; // Slightly faster (excited about technical details)
+          utterance.pitch = 0.9; // Slightly lower pitch
+          break;
+        default:
+          utterance.rate = 1.0;
+          utterance.pitch = 1.0;
       }
       
       utterance.onend = () => {
@@ -119,7 +182,19 @@ const ExplanationDisplay: FC<ExplanationDisplayProps> = ({ explanation }) => {
             >
               <Volume2 className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground"
+              onClick={() => {
+                navigator.clipboard.writeText(explanation.text);
+                toast({
+                  title: "Copied to clipboard",
+                  description: "Explanation text has been copied.",
+                  duration: 3000,
+                });
+              }}
+            >
               <Share2 className="w-4 h-4" />
             </Button>
           </div>
@@ -159,6 +234,13 @@ const ExplanationDisplay: FC<ExplanationDisplayProps> = ({ explanation }) => {
       <div className="flex justify-center">
         <Button 
           className="bg-gradient-to-r from-ace-pink to-ace-orange hover:opacity-90 gap-2"
+          onClick={() => {
+            toast({
+              title: "Generating new content",
+              description: "Hold tight! We're creating more amazing content for you.",
+              duration: 3000,
+            });
+          }}
         >
           <Sparkles className="w-4 h-4" />
           <span>Generate More Content</span>

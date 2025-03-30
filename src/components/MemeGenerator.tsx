@@ -1,5 +1,5 @@
 
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { MemeContent } from '../types/explanation';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,33 +14,40 @@ interface MemeGeneratorProps {
 const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic }) => {
   const [content, setContent] = useState<MemeContent>(initialContent);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const { toast } = useToast();
   
   // List of meme templates with different top and bottom texts
   const memeTemplates = [
     {
       topText: `WHEN SOMEONE ASKS ABOUT ${topic.toUpperCase()}`,
-      bottomText: "ME: *EXPLAINS WITH ADVANCED SCIENCE*"
+      bottomText: "ME: *EXPLAINS WITH ADVANCED SCIENCE*",
+      image: "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png"
     },
     {
       topText: `${topic.toUpperCase()}? OH YOU MEAN`,
-      bottomText: "THAT THING NOBODY UNDERSTANDS"
+      bottomText: "THAT THING NOBODY UNDERSTANDS",
+      image: "/lovable-uploads/d44eb7af-27a5-45b3-821f-9667db43e929.png"
     },
     {
       topText: `TRYING TO UNDERSTAND ${topic.toUpperCase()}`,
-      bottomText: "MY BRAIN: UNDERSTANDABLE, HAVE A NICE DAY"
+      bottomText: "MY BRAIN: UNDERSTANDABLE, HAVE A NICE DAY",
+      image: "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png"
     },
     {
       topText: `TEACHER: EXPLAIN ${topic.toUpperCase()}`,
-      bottomText: "ME: *PANICS IN CONFUSION*"
+      bottomText: "ME: *PANICS IN CONFUSION*",
+      image: "/lovable-uploads/d44eb7af-27a5-45b3-821f-9667db43e929.png"
     },
     {
       topText: `NOBODY: ABSOLUTELY NOBODY:`,
-      bottomText: `ME: LET ME TELL YOU ABOUT ${topic.toUpperCase()}`
+      bottomText: `ME: LET ME TELL YOU ABOUT ${topic.toUpperCase()}`,
+      image: "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png"
     },
     {
       topText: `THEY SAID ${topic.toUpperCase()} WAS SIMPLE`,
-      bottomText: "THEY LIED"
+      bottomText: "THEY LIED",
+      image: "/lovable-uploads/d44eb7af-27a5-45b3-821f-9667db43e929.png"
     }
   ];
   
@@ -58,14 +65,35 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
     return gradients[Math.floor(Math.random() * gradients.length)];
   };
   
+  // Initialize current meme image
+  const [currentMemeImage, setCurrentMemeImage] = useState(memeTemplates[0].image);
+  
+  useEffect(() => {
+    // Set initial meme image based on content
+    const templateIndex = memeTemplates.findIndex(template => 
+      template.topText === content.topText && template.bottomText === content.bottomText);
+    
+    if (templateIndex >= 0) {
+      setCurrentMemeImage(memeTemplates[templateIndex].image);
+    } else {
+      setCurrentMemeImage(memeTemplates[0].image);
+    }
+  }, []);
+  
   const regenerateMeme = () => {
     setIsRegenerating(true);
+    setImageLoaded(false);
     
     // Get a random meme template different from current one
-    let newTemplate;
+    let newTemplateIndex;
     do {
-      newTemplate = memeTemplates[Math.floor(Math.random() * memeTemplates.length)];
-    } while (newTemplate.topText === content.topText && newTemplate.bottomText === content.bottomText);
+      newTemplateIndex = Math.floor(Math.random() * memeTemplates.length);
+    } while (
+      memeTemplates[newTemplateIndex].topText === content.topText && 
+      memeTemplates[newTemplateIndex].bottomText === content.bottomText
+    );
+    
+    const newTemplate = memeTemplates[newTemplateIndex];
     
     // Simulate loading
     setTimeout(() => {
@@ -74,6 +102,8 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
         topText: newTemplate.topText,
         bottomText: newTemplate.bottomText
       });
+      setCurrentMemeImage(newTemplate.image);
+      setBgGradient(getRandomGradient());
       setIsRegenerating(false);
       
       toast({
@@ -85,6 +115,10 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
   };
   
   const [bgGradient, setBgGradient] = useState(getRandomGradient());
+  
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
   
   return (
     <Card className="bg-secondary/30 border border-muted backdrop-blur-md animate-fade-in">
@@ -105,26 +139,34 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
       </div>
       <CardContent className="p-4 space-y-4">
         <div className="relative bg-black/50 rounded-lg overflow-hidden aspect-square max-w-xs mx-auto transition-all duration-300 transform hover:scale-105">
-          {/* Background gradient that changes on regenerate */}
+          {/* Background gradient */}
           <div className={`absolute inset-0 bg-gradient-to-br ${bgGradient} opacity-20`}></div>
           
+          {/* Actual meme image */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            {!imageLoaded && (
+              <div className="w-full h-full flex items-center justify-center bg-gray-900/70">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
+              </div>
+            )}
+            <img 
+              src={currentMemeImage} 
+              alt="AI generated meme" 
+              className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-80' : 'opacity-0'}`}
+              onLoad={handleImageLoad}
+            />
+          </div>
+          
           {/* Meme text */}
-          <div className="absolute inset-x-0 top-4 p-2 text-center">
+          <div className="absolute inset-x-0 top-4 p-2 text-center z-10">
             <p className="meme-text text-white font-bold uppercase text-lg md:text-xl shadow-text">
               {content.topText}
             </p>
           </div>
-          <div className="absolute inset-x-0 bottom-4 p-2 text-center">
+          <div className="absolute inset-x-0 bottom-4 p-2 text-center z-10">
             <p className="meme-text text-white font-bold uppercase text-lg md:text-xl shadow-text">
               {content.bottomText}
             </p>
-          </div>
-          
-          {/* Center placeholder */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-3/4 h-3/4 rounded-lg bg-gradient-to-br from-gray-800/50 to-gray-900/50 flex items-center justify-center">
-              <p className="text-center text-white/70">AI generated meme image will appear here</p>
-            </div>
           </div>
         </div>
         

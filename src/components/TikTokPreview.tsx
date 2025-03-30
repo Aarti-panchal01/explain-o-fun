@@ -1,5 +1,5 @@
 
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { TikTokContent } from '../types/explanation';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,22 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
   const [likes, setLikes] = useState(Math.floor(Math.random() * 10000) + 1000);
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  
+  // Background videos or images for TikTok preview
+  const backgroundImages = [
+    "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png",
+    "/lovable-uploads/d44eb7af-27a5-45b3-821f-9667db43e929.png"
+  ];
+  
+  const [currentBackground, setCurrentBackground] = useState<string>(
+    backgroundImages[Math.floor(Math.random() * backgroundImages.length)]
+  );
+  
+  useEffect(() => {
+    // Reset image loaded state when background changes
+    setImageLoaded(false);
+  }, [currentBackground]);
   
   const getEmojiForStyle = () => {
     switch (content.style) {
@@ -29,17 +45,31 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
     }
   };
   
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
+  
   const speakScript = () => {
     if ('speechSynthesis' in window) {
       if (isSpeaking) {
         window.speechSynthesis.cancel();
         setIsSpeaking(false);
+        setIsPlaying(false);
         return;
       }
       
       // Remove directions from the script for speaking
       const cleanScript = content.script.replace(/\*([^*]+)\*/g, '');
       const utterance = new SpeechSynthesisUtterance(cleanScript);
+      
+      // Get available voices
+      const voices = window.speechSynthesis.getVoices();
+      
+      // Set a voice based on persona if available
+      if (voices.length > 0) {
+        const voiceIndex = Math.min(Math.floor(Math.random() * voices.length), voices.length - 1);
+        utterance.voice = voices[voiceIndex];
+      }
       
       utterance.onend = () => {
         setIsSpeaking(false);
@@ -107,9 +137,24 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
       <div className="relative">
         {/* TikTok video area */}
         <div className="relative bg-gray-900 aspect-[9/16] flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-white/50 text-center">AI TikTok Preview</p>
-          </div>
+          {/* Loading spinner */}
+          {!imageLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
+            </div>
+          )}
+          
+          {/* Background image */}
+          <img 
+            src={currentBackground} 
+            alt="TikTok background" 
+            className={`absolute inset-0 w-full h-full object-cover filter brightness-50 transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            style={{ objectPosition: 'center' }}
+            onLoad={handleImageLoad}
+          />
+          
+          {/* Video overlay with gradients for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30"></div>
           
           {/* Username and description */}
           <div className="absolute bottom-4 left-3 right-12 z-10">
@@ -171,6 +216,22 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
               <span className="text-xl">🎵</span>
             </div>
           </div>
+          
+          {/* "AI TikTok" watermark */}
+          <div className="absolute top-2 right-2 bg-black/40 rounded px-2 py-1">
+            <span className="text-white/80 text-xs flex items-center gap-1">
+              <span>✨</span> AI TikTok
+            </span>
+          </div>
+          
+          {/* Play indicator when audio is playing */}
+          {isPlaying && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-16 h-16 rounded-full bg-black/30 flex items-center justify-center">
+                <RefreshCw className="w-8 h-8 text-white animate-spin" />
+              </div>
+            </div>
+          )}
         </div>
       </div>
       
