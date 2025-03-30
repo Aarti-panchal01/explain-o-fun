@@ -1,4 +1,3 @@
-
 import { FC, useState, useEffect, useRef } from 'react';
 import { MemeContent } from '../types/explanation';
 import { Card, CardContent } from "@/components/ui/card";
@@ -49,7 +48,7 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
     {
       topText: `THEY SAID ${topic.toUpperCase()} WAS SIMPLE`,
       bottomText: "THEY LIED",
-      image: "/lovable-uploads/d44eb7af-27a5-45b3-821f-9667db43e929.png"
+      image: "/lovable-uploads/93923333-0797-4f95-b898-b9e8583476fb.png"
     },
     {
       topText: `WHAT IS AI?? OH YOU MEAN`,
@@ -78,19 +77,24 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
   };
   
   // Initialize current meme image
-  const [currentMemeImage, setCurrentMemeImage] = useState(memeTemplates[0].image);
+  const [currentMemeImage, setCurrentMemeImage] = useState<string>("");
+  
+  // Function to find the correct image for the current meme text
+  const findImageForMemeText = (topText: string, bottomText: string) => {
+    const template = memeTemplates.find(template => 
+      template.topText === topText && template.bottomText === bottomText);
+    
+    return template ? template.image : memeTemplates[0].image;
+  };
   
   useEffect(() => {
     // Set initial meme image based on content
-    const templateIndex = memeTemplates.findIndex(template => 
-      template.topText === content.topText && template.bottomText === content.bottomText);
-    
-    if (templateIndex >= 0) {
-      setCurrentMemeImage(memeTemplates[templateIndex].image);
-    } else {
-      setCurrentMemeImage(memeTemplates[0].image);
-    }
-  }, []);
+    const image = findImageForMemeText(content.topText, content.bottomText);
+    console.log("Setting initial meme image:", image);
+    setCurrentMemeImage(image);
+    // Reset image loaded state to trigger loading spinner
+    setImageLoaded(false);
+  }, [content.topText, content.bottomText]);
   
   const regenerateMeme = () => {
     setIsRegenerating(true);
@@ -106,6 +110,7 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
     );
     
     const newTemplate = memeTemplates[newTemplateIndex];
+    console.log("Selected new template:", newTemplate);
     
     // Simulate loading
     setTimeout(() => {
@@ -129,7 +134,18 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
   const [bgGradient, setBgGradient] = useState(getRandomGradient());
   
   const handleImageLoad = () => {
+    console.log("Image loaded successfully:", currentMemeImage);
     setImageLoaded(true);
+  };
+
+  const handleImageError = () => {
+    console.error("Failed to load image:", currentMemeImage);
+    // Fallback to a default image if the current one fails to load
+    if (currentMemeImage !== memeTemplates[0].image) {
+      setCurrentMemeImage(memeTemplates[0].image);
+    } else {
+      setImageLoaded(true); // Force show something rather than spinner forever
+    }
   };
 
   const downloadMeme = async () => {
@@ -266,12 +282,15 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
               </div>
             )}
-            <img 
-              src={currentMemeImage} 
-              alt="AI generated meme" 
-              className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-              onLoad={handleImageLoad}
-            />
+            {currentMemeImage && (
+              <img 
+                src={currentMemeImage} 
+                alt="AI generated meme" 
+                className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                onLoad={handleImageLoad}
+                onError={handleImageError}
+              />
+            )}
           </div>
           
           {/* Meme text */}
@@ -320,7 +339,7 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
           </div>
         </div>
       </CardContent>
-      {/* Fix the style element by removing the jsx and global properties */}
+      {/* Fix the style element by using dangerouslySetInnerHTML */}
       <style dangerouslySetInnerHTML={{
         __html: `
           .text-shadow-lg {
