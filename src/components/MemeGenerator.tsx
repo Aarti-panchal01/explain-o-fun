@@ -315,16 +315,19 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
           </div>
         </div>
       </CardContent>
-      <style jsx global>{`
-        .text-shadow-lg {
-          text-shadow: 
-            -2px -2px 0 #000,  
-            2px -2px 0 #000,
-            -2px 2px 0 #000,
-            2px 2px 0 #000,
-            0 3px 0 #000;
-        }
-      `}</style>
+      {/* Fix the style element by removing the jsx and global properties */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .text-shadow-lg {
+            text-shadow: 
+              -2px -2px 0 #000,  
+              2px -2px 0 #000,
+              -2px 2px 0 #000,
+              2px 2px 0 #000,
+              0 3px 0 #000;
+          }
+        `
+      }} />
     </Card>
   );
 };
