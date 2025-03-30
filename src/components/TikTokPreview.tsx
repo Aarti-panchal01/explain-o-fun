@@ -1,4 +1,3 @@
-
 import { FC, useState } from 'react';
 import { TikTokContent } from '../types/explanation';
 import { Card, CardContent } from "@/components/ui/card";
@@ -95,20 +94,14 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
     setIsLiked(!isLiked);
   };
 
-  // Parse the script to separate normal text and action text (in parentheses)
   const renderScript = () => {
-    const parts = content.script.split(/\*([^*]+)\*/);
-    return parts.map((part, index) => {
-      if (index % 2 === 1) {
-        return <p key={index} className="text-pink-400 italic my-2">{part}</p>;
-      }
-      return <p key={index} className="text-white my-1">{part}</p>;
-    });
+    return (
+      <p className="text-white my-1">{content.script.replace(/\*([^*]+)\*/g, '$1')}</p>
+    );
   };
   
   return (
     <Card className="bg-[#121212] border-none overflow-hidden max-w-md mx-auto text-white">
-      {/* TikTok header */}
       <div className="bg-[#1d1d1d] py-3 px-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-xl">🔥</span>
@@ -125,9 +118,7 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
       </div>
       
       <CardContent className="p-0">
-        {/* Main content area with dark background */}
         <div className="relative bg-[#121212] min-h-[400px] flex flex-col">
-          {/* User profile and follow button */}
           <div className="flex items-center gap-3 p-4 border-b border-gray-800">
             <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white text-xl">
               {getEmojiForStyle()}
@@ -155,13 +146,11 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
             </Button>
           </div>
           
-          {/* Video content (simulated with text) */}
           <div className="p-4 flex-grow">
             <div className="mb-3">
               {renderScript()}
             </div>
             
-            {/* Hashtags */}
             <div className="flex flex-wrap gap-1 mt-3">
               {content.hashtags.map((hashtag, index) => (
                 <span key={index} className="text-[#5F9FFF] text-sm font-medium">{hashtag}</span>
@@ -169,7 +158,6 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
             </div>
           </div>
           
-          {/* Right side action buttons */}
           <div className="absolute right-3 bottom-20 flex flex-col gap-5">
             <Button
               variant="ghost"
@@ -210,7 +198,6 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
             </Button>
           </div>
           
-          {/* Bottom music player (simulated) */}
           <div className="flex items-center justify-between p-3 border-t border-gray-800 bg-[#1d1d1d]">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center animate-spin-slow">

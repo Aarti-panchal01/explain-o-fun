@@ -24,12 +24,18 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
   const [isLiked, setIsLiked] = useState(false);
   const [funnyMeter, setFunnyMeter] = useState(Math.floor(Math.random() * 100));
   
+  // Enhanced funny tags with better humor
   const funnyTags = [
     "That's what she said!",
     "Mom's spaghetti",
     "No cap, fr fr",
     "This is peak comedy",
-    "Literally me"
+    "Literally me",
+    "Not sure if genius or sleep-deprived",
+    "My last brain cell trying its best",
+    "Laughs in procrastination",
+    "When in doubt, meme it out",
+    "Comedy achieved successfully"
   ];
   
   const regenerateMeme = () => {
