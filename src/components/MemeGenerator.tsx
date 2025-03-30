@@ -162,7 +162,7 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
         
         {/* Random funny tag */}
         <div className="text-xs text-center text-muted-foreground italic">
-          "{['That's what she said!', 'Mom's spaghetti', 'No cap, fr fr', 'This is peak comedy', 'Literally me'][Math.floor(Math.random() * 5)]}"
+          "{["That's what she said!", "Mom's spaghetti", "No cap, fr fr", "This is peak comedy", "Literally me"][Math.floor(Math.random() * 5)]}"
         </div>
       </CardContent>
       <style dangerouslySetInnerHTML={{
