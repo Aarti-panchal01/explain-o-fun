@@ -1,4 +1,3 @@
-
 import { Explanation, ExplanationMode, PersonaMode, TikTokContent, MemeContent, TikTokStyle } from "../types/explanation";
 
 // This is a mock service that will be replaced with real API calls later
@@ -85,7 +84,7 @@ const generateTikTokContent = (topic: string, mode: ExplanationMode, persona: Pe
 // Generate meme content
 const generateMemeContent = (topic: string, mode: ExplanationMode, persona: PersonaMode): MemeContent => {
   // In a real implementation, this would connect to an AI image generator
-  // For now, we'll use placeholder content
+  // For now, we'll use placeholder content that matches our available meme templates
   
   let topText = '';
   let bottomText = '';
@@ -96,7 +95,7 @@ const generateMemeContent = (topic: string, mode: ExplanationMode, persona: Pers
       bottomText = "ME: *EXPLAINS IN GEN Z*";
       break;
     case 'professor':
-      topText = `EXPLAINING ${topic.toUpperCase()}`;
+      topText = `EXPLAINING WHAT IS ${topic.toUpperCase()}`;
       bottomText = "LIKE A DISTINGUISHED PROFESSOR";
       break;
     case 'geek':
@@ -112,8 +111,9 @@ const generateMemeContent = (topic: string, mode: ExplanationMode, persona: Pers
       bottomText = "EXPLAIN-O-FUN: I GOT YOU";
   }
   
-  // Placeholder image URL - in production this would be generated
-  const imageUrl = "/placeholder-meme.jpg";
+  // We're not using this imageUrl anymore since the MemeGenerator component will choose
+  // an appropriate image based on the text, but we need to keep it in the type
+  const imageUrl = "";
   
   return {
     imageUrl,

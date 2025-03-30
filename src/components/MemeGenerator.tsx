@@ -1,3 +1,4 @@
+
 import { FC, useState, useEffect, useRef } from 'react';
 import { MemeContent } from '../types/explanation';
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,42 +24,56 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
     {
       topText: `WHEN SOMEONE ASKS ABOUT ${topic.toUpperCase()}`,
       bottomText: "ME: *EXPLAINS WITH ADVANCED SCIENCE*",
-      image: "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png"
+      image: "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png",
+      category: "explanation"
     },
     {
       topText: `${topic.toUpperCase()}? OH YOU MEAN`,
       bottomText: "THAT THING NOBODY UNDERSTANDS",
-      image: "/lovable-uploads/d44eb7af-27a5-45b3-821f-9667db43e929.png"
+      image: "/lovable-uploads/d44eb7af-27a5-45b3-821f-9667db43e929.png",
+      category: "confusion"
     },
     {
       topText: `TRYING TO UNDERSTAND ${topic.toUpperCase()}`,
       bottomText: "MY BRAIN: UNDERSTANDABLE, HAVE A NICE DAY",
-      image: "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png"
+      image: "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png",
+      category: "confusion"
     },
     {
       topText: `TEACHER: EXPLAIN ${topic.toUpperCase()}`,
       bottomText: "ME: *PANICS IN CONFUSION*",
-      image: "/lovable-uploads/d44eb7af-27a5-45b3-821f-9667db43e929.png"
+      image: "/lovable-uploads/d44eb7af-27a5-45b3-821f-9667db43e929.png",
+      category: "education"
     },
     {
       topText: `NOBODY: ABSOLUTELY NOBODY:`,
       bottomText: `ME: LET ME TELL YOU ABOUT ${topic.toUpperCase()}`,
-      image: "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png"
+      image: "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png",
+      category: "explanation"
     },
     {
       topText: `THEY SAID ${topic.toUpperCase()} WAS SIMPLE`,
       bottomText: "THEY LIED",
-      image: "/lovable-uploads/93923333-0797-4f95-b898-b9e8583476fb.png"
+      image: "/lovable-uploads/93923333-0797-4f95-b898-b9e8583476fb.png",
+      category: "confusion"
     },
     {
       topText: `WHAT IS AI?? OH YOU MEAN`,
       bottomText: "THAT THING NOBODY UNDERSTANDS",
-      image: "/lovable-uploads/6628eab6-74f2-479d-b393-b54266c3c6cd.png"
+      image: "/lovable-uploads/6628eab6-74f2-479d-b393-b54266c3c6cd.png",
+      category: "ai"
     },
     {
       topText: `EXPLAINING WHAT IS ${topic.toUpperCase()}?`,
       bottomText: `LIKE A DISTINGUISHED PROFESSOR`,
-      image: "/lovable-uploads/c08b02c6-65f6-4d2c-ab9a-ef1037575f93.png"
+      image: "/lovable-uploads/c08b02c6-65f6-4d2c-ab9a-ef1037575f93.png",
+      category: "professor"
+    },
+    {
+      topText: `EXPLAINING WHAT IS ${topic.toUpperCase()}`,
+      bottomText: `LIKE A DISTINGUISHED PROFESSOR`,
+      image: "/lovable-uploads/2c12f6fb-c779-4518-86b8-ef2fda72f6d5.png",
+      category: "professor"
     }
   ];
   
@@ -76,24 +91,57 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
     return gradients[Math.floor(Math.random() * gradients.length)];
   };
   
-  // Initialize with a random meme template for immediate display
-  const randomTemplateIndex = Math.floor(Math.random() * memeTemplates.length);
-  const [currentMemeImage, setCurrentMemeImage] = useState(memeTemplates[randomTemplateIndex].image);
+  // Find a template that matches the content and persona
+  const findMatchingTemplate = (topText: string, bottomText: string) => {
+    // First try to find an exact match
+    let matchedTemplate = memeTemplates.find(template => 
+      template.topText === topText && template.bottomText === bottomText
+    );
+    
+    // If no exact match, check for templates with matching keywords
+    if (!matchedTemplate) {
+      // Check for distinguished professor templates
+      if (bottomText.includes("DISTINGUISHED PROFESSOR")) {
+        matchedTemplate = memeTemplates.find(template => 
+          template.category === "professor"
+        );
+      }
+      // Check for AI-specific templates
+      else if (topText.includes("AI") || bottomText.includes("AI")) {
+        matchedTemplate = memeTemplates.find(template => 
+          template.category === "ai"
+        );
+      }
+      // Check for confusion-related templates
+      else if (topText.includes("UNDERSTAND") || bottomText.includes("CONFUSED")) {
+        matchedTemplate = memeTemplates.find(template => 
+          template.category === "confusion"
+        );
+      }
+      // Check for explanation-related templates
+      else if (topText.includes("EXPLAIN") || bottomText.includes("EXPLAIN")) {
+        matchedTemplate = memeTemplates.find(template => 
+          template.category === "explanation"
+        );
+      }
+    }
+    
+    // If still no match, use the first template as fallback
+    return matchedTemplate || memeTemplates[0];
+  };
+  
+  // Initialize with a template that matches the initial content
+  const initialTemplate = findMatchingTemplate(initialContent.topText, initialContent.bottomText);
+  const [currentMemeImage, setCurrentMemeImage] = useState(initialTemplate.image);
+  const [bgGradient, setBgGradient] = useState(getRandomGradient());
   
   useEffect(() => {
-    // Reset image loaded state when component mounts
+    // Reset image loaded state when component mounts or content changes
     setImageLoaded(false);
     
-    // Find template that matches current content or use random one
-    const matchedTemplate = memeTemplates.find(template => 
-      template.topText === content.topText && template.bottomText === content.bottomText);
-    
-    if (matchedTemplate) {
-      setCurrentMemeImage(matchedTemplate.image);
-    } else {
-      // If no match, set to first template
-      setCurrentMemeImage(memeTemplates[0].image);
-    }
+    // Find template that matches current content
+    const matchedTemplate = findMatchingTemplate(content.topText, content.bottomText);
+    setCurrentMemeImage(matchedTemplate.image);
   }, [content.topText, content.bottomText]);
   
   const regenerateMeme = () => {
@@ -129,8 +177,6 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
       });
     }, 800);
   };
-  
-  const [bgGradient, setBgGradient] = useState(getRandomGradient());
   
   const handleImageLoad = () => {
     setImageLoaded(true);
