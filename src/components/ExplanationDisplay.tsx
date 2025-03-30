@@ -1,5 +1,5 @@
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Explanation } from '../types/explanation';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,12 +7,16 @@ import { Volume2, Share2, Sparkles } from "lucide-react";
 import TikTokPreview from './TikTokPreview';
 import MemeGenerator from './MemeGenerator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ExplanationDisplayProps {
   explanation: Explanation | null;
 }
 
 const ExplanationDisplay: FC<ExplanationDisplayProps> = ({ explanation }) => {
+  const { toast } = useToast();
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  
   if (!explanation) return null;
 
   const getModeEmoji = () => {
@@ -35,6 +39,66 @@ const ExplanationDisplay: FC<ExplanationDisplayProps> = ({ explanation }) => {
     }
   };
 
+  const speakText = () => {
+    // Use the browser's text-to-speech API
+    if ('speechSynthesis' in window) {
+      // If already speaking, stop it
+      if (isSpeaking) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(explanation.text);
+      
+      // Adjust voice based on persona
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        // Try to match a voice to the persona
+        let voiceIndex = 0;
+        switch (explanation.persona) {
+          case 'professor':
+            // Find a more formal sounding voice
+            voiceIndex = voices.findIndex(v => v.name.includes('Google') && v.name.includes('Female')) || 0;
+            break;
+          case 'genz':
+            // Find a younger sounding voice
+            voiceIndex = voices.findIndex(v => v.name.includes('Google') && v.name.includes('Female')) || 0;
+            break;
+          case 'comedian':
+            // Find a more expressive voice
+            voiceIndex = voices.findIndex(v => v.name.includes('Google') && v.name.includes('Male')) || 0;
+            break;
+          case 'geek':
+            // Find a more technical sounding voice
+            voiceIndex = voices.findIndex(v => v.name.includes('Google') && v.name.includes('Male')) || 0;
+            break;
+        }
+        utterance.voice = voices[voiceIndex >= 0 ? voiceIndex : 0];
+      }
+      
+      utterance.onend = () => {
+        setIsSpeaking(false);
+      };
+      
+      window.speechSynthesis.speak(utterance);
+      setIsSpeaking(true);
+      
+      toast({
+        title: "Text-to-Speech activated",
+        description: "Listening to the explanation...",
+        duration: 3000,
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Feature not supported",
+        description: "Your browser doesn't support text-to-speech.",
+        duration: 3000,
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card className="bg-secondary/30 border border-muted backdrop-blur-md animate-fade-in">
@@ -47,7 +111,12 @@ const ExplanationDisplay: FC<ExplanationDisplayProps> = ({ explanation }) => {
             </h3>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
+            <Button 
+              variant={isSpeaking ? "default" : "ghost"} 
+              size="icon" 
+              className={isSpeaking ? "bg-ace-purple text-white" : "text-muted-foreground"}
+              onClick={speakText}
+            >
               <Volume2 className="w-4 h-4" />
             </Button>
             <Button variant="ghost" size="icon" className="text-muted-foreground">

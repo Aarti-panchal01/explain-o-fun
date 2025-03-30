@@ -98,6 +98,14 @@
     @apply font-bold uppercase text-center;
     text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
   }
+  
+  .shadow-text {
+    text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+  }
+  
+  .animate-spin-slow {
+    animation: spin 4s linear infinite;
+  }
 }
 
 @keyframes cursor-blink {
@@ -123,6 +131,11 @@
 @keyframes breathe {
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .animate-bounce-slow {
