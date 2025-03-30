@@ -1,9 +1,9 @@
 
-import { FC, useState, useRef } from 'react';
+import { FC, useState, useRef, useEffect } from 'react';
 import { MemeContent } from '../types/explanation';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Share2, RefreshCw, ThumbsUp } from "lucide-react";
+import { Download, Share2, RefreshCw, ThumbsUp, Sparkles, Twitter, Instagram } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import MemeImage from './meme/MemeImage';
 import { getRandomTemplate, processTemplate } from '../data/memeTemplates';
@@ -17,14 +17,16 @@ interface MemeGeneratorProps {
 const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic }) => {
   const [content, setContent] = useState<MemeContent>(initialContent);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const { toast } = useToast();
   const memeRef = useRef<HTMLDivElement>(null);
   const [bgGradient, setBgGradient] = useState(getRandomGradient());
   const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 500) + 100);
   const [isLiked, setIsLiked] = useState(false);
   const [funnyMeter, setFunnyMeter] = useState(Math.floor(Math.random() * 100));
+  const [viralityScore, setViralityScore] = useState(Math.floor(Math.random() * 50) + 50);
   
-  // Enhanced funny tags with better humor
+  // Enhanced funny tags with more viral humor
   const funnyTags = [
     "That's what she said!",
     "Mom's spaghetti",
@@ -33,10 +35,22 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
     "Literally me",
     "Not sure if genius or sleep-deprived",
     "My last brain cell trying its best",
-    "Laughs in procrastination",
     "When in doubt, meme it out",
-    "Comedy achieved successfully"
+    "If this doesn't go viral, nothing will",
+    "The internet's new personality just dropped", 
+    "This meme passed the vibe check",
+    "CEO of explaining complicated stuff",
+    "Tell me you don't understand without telling me",
+    "POV: you're learning something new",
+    "Nobody: Absolutely nobody: Me with my new knowledge:"
   ];
+  
+  // Randomly select a funny tag on component mount or regeneration
+  const [currentFunnyTag, setCurrentFunnyTag] = useState('');
+  
+  useEffect(() => {
+    setCurrentFunnyTag(funnyTags[Math.floor(Math.random() * funnyTags.length)]);
+  }, [content]);
   
   const regenerateMeme = () => {
     setIsRegenerating(true);
@@ -55,6 +69,7 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
       setBgGradient(getRandomGradient());
       setIsRegenerating(false);
       setFunnyMeter(Math.floor(Math.random() * 100));
+      setViralityScore(Math.floor(Math.random() * 50) + 50);
       
       toast({
         title: "Even funnier meme generated!",
@@ -64,13 +79,36 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
     }, 800);
   };
 
-  const handleShareMeme = () => {
-    navigator.clipboard.writeText(`${content.topText}\n\n${content.bottomText}`);
-    toast({
-      title: "Meme copied to clipboard",
-      description: "Your AI meme text has been copied. Go spread the laughter!",
-      duration: 3000,
-    });
+  const handleShareMeme = (platform: 'clipboard' | 'twitter' | 'instagram') => {
+    setIsSharing(true);
+    
+    // Simulate sharing to different platforms
+    setTimeout(() => {
+      let message = '';
+      
+      switch(platform) {
+        case 'clipboard':
+          navigator.clipboard.writeText(`${content.topText}\n\n${content.bottomText}\n\n#Explainofun #${topic.replace(/\s+/g, '')}`);
+          message = "Meme copied to clipboard! Go spread the laughter!";
+          break;
+        case 'twitter':
+          message = "Ready to share on Twitter! Opening share dialog...";
+          // In a real implementation, we would open Twitter's sharing dialog
+          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${content.topText}\n${content.bottomText}\n\n#Explainofun #${topic.replace(/\s+/g, '')}`)}`, '_blank');
+          break;
+        case 'instagram':
+          message = "Ready for Instagram! Save the image to share to your stories!";
+          break;
+      }
+      
+      toast({
+        title: "Sharing your meme",
+        description: message,
+        duration: 3000,
+      });
+      
+      setIsSharing(false);
+    }, 1000);
   };
 
   const handleLike = () => {
@@ -94,24 +132,37 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
           <span className="text-xl">🎭</span>
           <h3 className="font-bold text-gradient">AI Meme Generator</h3>
         </div>
-        <div className="flex items-center gap-2 text-xs">
-          <div className="h-2 w-20 bg-gray-700 rounded-full overflow-hidden">
-            <div 
-              className={`h-full ${funnyMeter > 75 ? 'bg-green-500' : funnyMeter > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
-              style={{ width: `${funnyMeter}%` }}
-            ></div>
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col items-end">
+            <div className="flex items-center gap-1 text-xs">
+              <span className="text-muted-foreground">Funny-o-meter</span>
+              <div className="h-2 w-20 bg-gray-700 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full ${funnyMeter > 75 ? 'bg-green-500' : funnyMeter > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                  style={{ width: `${funnyMeter}%` }}
+                ></div>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-xs mt-1">
+              <span className="text-muted-foreground">Virality</span>
+              <div className="h-2 w-20 bg-gray-700 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                  style={{ width: `${viralityScore}%` }}
+                ></div>
+              </div>
+            </div>
           </div>
-          <span className="text-muted-foreground">Funny-o-meter</span>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={`text-muted-foreground ${isRegenerating ? 'animate-spin' : ''}`}
+            onClick={regenerateMeme}
+            disabled={isRegenerating}
+          >
+            <RefreshCw className="w-4 h-4" />
+          </Button>
         </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className={`text-muted-foreground ${isRegenerating ? 'animate-spin' : ''}`}
-          onClick={regenerateMeme}
-          disabled={isRegenerating}
-        >
-          <RefreshCw className="w-4 h-4" />
-        </Button>
       </div>
       <CardContent className="p-4 space-y-4">
         <div ref={memeRef}>
@@ -131,8 +182,8 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
               onClick={regenerateMeme}
               disabled={isRegenerating}
             >
-              <RefreshCw className={`w-3 h-3 ${isRegenerating ? 'animate-spin' : ''}`} />
-              <span>Make it funnier</span>
+              <Sparkles className="w-3 h-3 text-yellow-500" />
+              <span>Make it viral</span>
             </Button>
             
             <Button
@@ -150,33 +201,38 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
               variant="outline" 
               size="sm" 
               className="text-sm gap-1"
-              onClick={() => {
-                navigator.clipboard.writeText(`${content.topText}\n\n${content.bottomText}`);
-                toast({
-                  title: "Meme saved",
-                  description: "Your AI meme has been copied to clipboard.",
-                  duration: 3000,
-                });
-              }}
+              onClick={() => handleShareMeme('twitter')}
+              disabled={isSharing}
             >
-              <Download className="w-3 h-3" />
-              <span>Save</span>
+              <Twitter className="w-3 h-3 text-blue-400" />
+              <span>Twitter</span>
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
               className="text-sm gap-1"
-              onClick={handleShareMeme}
+              onClick={() => handleShareMeme('instagram')}
+              disabled={isSharing}
+            >
+              <Instagram className="w-3 h-3 text-pink-500" />
+              <span>Instagram</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-sm gap-1"
+              onClick={() => handleShareMeme('clipboard')}
+              disabled={isSharing}
             >
               <Share2 className="w-3 h-3" />
-              <span>Share</span>
+              <span>Copy</span>
             </Button>
           </div>
         </div>
         
         {/* Random funny tag */}
         <div className="text-xs text-center text-muted-foreground italic">
-          "{funnyTags[Math.floor(Math.random() * funnyTags.length)]}"
+          "{currentFunnyTag}"
         </div>
       </CardContent>
       <style dangerouslySetInnerHTML={{

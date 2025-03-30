@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import ModeSelector from '@/components/ModeSelector';
 import TopicInput from '@/components/TopicInput';
@@ -6,8 +7,10 @@ import ExplanationDisplay from '@/components/ExplanationDisplay';
 import { Explanation, ExplanationMode, PersonaMode } from '@/types/explanation';
 import { generateExplanation } from '@/services/explanationService';
 import { Separator } from '@/components/ui/separator';
-import { Sparkles, Brain, Flame } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Sparkles, Brain, Flame, TrendingUp, ArrowRight } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [topic, setTopic] = useState('');
@@ -16,6 +19,35 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [explanation, setExplanation] = useState<Explanation | null>(null);
   const { toast } = useToast();
+  const [trendingTopics, setTrendingTopics] = useState<Array<{topic: string, heat: number}>>([]);
+
+  // Mock trending topics that change periodically
+  useEffect(() => {
+    const mockTrendingTopics = [
+      { topic: 'Quantum Computing', heat: 98 },
+      { topic: 'Black Holes', heat: 87 },
+      { topic: 'Artificial Intelligence', heat: 95 },
+      { topic: 'Blockchain', heat: 82 },
+      { topic: 'Dark Matter', heat: 78 },
+      { topic: 'String Theory', heat: 76 },
+      { topic: 'Climate Change', heat: 92 },
+      { topic: 'Genetic Engineering', heat: 89 },
+      { topic: 'Renewable Energy', heat: 85 },
+      { topic: 'Virtual Reality', heat: 81 },
+    ];
+    
+    // Shuffle and take 5 random topics
+    const shuffled = [...mockTrendingTopics].sort(() => 0.5 - Math.random());
+    setTrendingTopics(shuffled.slice(0, 5));
+    
+    // Refresh trending topics every 60 seconds
+    const interval = setInterval(() => {
+      const newShuffled = [...mockTrendingTopics].sort(() => 0.5 - Math.random());
+      setTrendingTopics(newShuffled.slice(0, 5));
+    }, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const handleExplain = async () => {
     if (!topic.trim()) return;
@@ -28,6 +60,31 @@ const Index = () => {
       toast({
         title: "Explanation generated!",
         description: `Your explanation of "${topic}" is ready to view.`,
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: "There was a problem generating your explanation.",
+      });
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleTrendingTopicClick = async (trendingTopic: string) => {
+    setTopic(trendingTopic);
+    
+    try {
+      setIsLoading(true);
+      const result = await generateExplanation(trendingTopic, explanationMode, personaMode);
+      setExplanation(result);
+      
+      toast({
+        title: "Trending topic explained!",
+        description: `Your explanation of "${trendingTopic}" is ready to view.`,
         duration: 3000,
       });
     } catch (error) {
@@ -55,6 +112,33 @@ const Index = () => {
             Supercharged AI explanations that break down any concept into fun, 
             easy-to-understand formats. Choose your style below!
           </p>
+        </div>
+        
+        {/* Trending Topics Section */}
+        <div className="glass-effect rounded-xl p-6 neon-glow">
+          <div className="flex items-center gap-2 mb-6">
+            <TrendingUp className="w-5 h-5 text-ace-purple" />
+            <h2 className="text-xl font-semibold">Trending Topics</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {trendingTopics.map((trendingTopic, index) => (
+              <Card key={index} className="bg-secondary/30 hover:bg-secondary/50 transition-colors cursor-pointer border border-muted" onClick={() => handleTrendingTopicClick(trendingTopic.topic)}>
+                <CardContent className="p-4 flex flex-col items-center">
+                  <div className="w-full flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-1">
+                      <Flame className="w-4 h-4 text-orange-500" />
+                      <span className="text-xs text-orange-500 font-medium">{trendingTopic.heat}%</span>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-center font-medium text-sm">
+                    {trendingTopic.topic}
+                  </h3>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
         
         <div className="space-y-8">
