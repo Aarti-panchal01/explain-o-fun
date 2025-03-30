@@ -23,17 +23,36 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
   // Background videos or images for TikTok preview
   const backgroundImages = [
     "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png",
-    "/lovable-uploads/d44eb7af-27a5-45b3-821f-9667db43e929.png"
+    "/lovable-uploads/d44eb7af-27a5-45b3-821f-9667db43e929.png",
+    "/lovable-uploads/93923333-0797-4f95-b898-b9e8583476fb.png",
+    "/lovable-uploads/6628eab6-74f2-479d-b393-b54266c3c6cd.png",
+    "/lovable-uploads/c08b02c6-65f6-4d2c-ab9a-ef1037575f93.png"
   ];
   
-  const [currentBackground, setCurrentBackground] = useState<string>(
-    backgroundImages[Math.floor(Math.random() * backgroundImages.length)]
-  );
+  // Select a random background image that matches the content style
+  const getStyleBasedBackground = () => {
+    switch (content.style) {
+      case 'casual':
+        return backgroundImages[0];
+      case 'dramatic':
+        return backgroundImages[2];
+      case 'educational':
+        return backgroundImages[4];
+      case 'hype':
+        return backgroundImages[1];
+      default:
+        return backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
+    }
+  };
+  
+  const [currentBackground, setCurrentBackground] = useState<string>(getStyleBasedBackground());
   
   useEffect(() => {
     // Reset image loaded state when background changes
     setImageLoaded(false);
-  }, [currentBackground]);
+    // Set background based on content style
+    setCurrentBackground(getStyleBasedBackground());
+  }, [content.style]);
   
   const getEmojiForStyle = () => {
     switch (content.style) {
@@ -47,6 +66,16 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
   
   const handleImageLoad = () => {
     setImageLoaded(true);
+  };
+  
+  const handleImageError = () => {
+    console.error("Failed to load TikTok background image:", currentBackground);
+    // Fallback to first image if current one fails
+    if (currentBackground !== backgroundImages[0]) {
+      setCurrentBackground(backgroundImages[0]);
+    } else {
+      setImageLoaded(true); // Force show something rather than spinner forever
+    }
   };
   
   const speakScript = () => {
@@ -145,13 +174,16 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
           )}
           
           {/* Background image */}
-          <img 
-            src={currentBackground} 
-            alt="TikTok background" 
-            className={`absolute inset-0 w-full h-full object-cover filter brightness-50 transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-            style={{ objectPosition: 'center' }}
-            onLoad={handleImageLoad}
-          />
+          {currentBackground && (
+            <img 
+              src={currentBackground} 
+              alt="TikTok background" 
+              className={`absolute inset-0 w-full h-full object-cover filter brightness-50 transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+              style={{ objectPosition: 'center' }}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+            />
+          )}
           
           {/* Video overlay with gradients for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30"></div>

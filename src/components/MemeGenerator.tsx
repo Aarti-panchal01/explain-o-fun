@@ -76,24 +76,24 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
     return gradients[Math.floor(Math.random() * gradients.length)];
   };
   
-  // Initialize current meme image
-  const [currentMemeImage, setCurrentMemeImage] = useState<string>("");
-  
-  // Function to find the correct image for the current meme text
-  const findImageForMemeText = (topText: string, bottomText: string) => {
-    const template = memeTemplates.find(template => 
-      template.topText === topText && template.bottomText === bottomText);
-    
-    return template ? template.image : memeTemplates[0].image;
-  };
+  // Initialize with a random meme template for immediate display
+  const randomTemplateIndex = Math.floor(Math.random() * memeTemplates.length);
+  const [currentMemeImage, setCurrentMemeImage] = useState(memeTemplates[randomTemplateIndex].image);
   
   useEffect(() => {
-    // Set initial meme image based on content
-    const image = findImageForMemeText(content.topText, content.bottomText);
-    console.log("Setting initial meme image:", image);
-    setCurrentMemeImage(image);
-    // Reset image loaded state to trigger loading spinner
+    // Reset image loaded state when component mounts
     setImageLoaded(false);
+    
+    // Find template that matches current content or use random one
+    const matchedTemplate = memeTemplates.find(template => 
+      template.topText === content.topText && template.bottomText === content.bottomText);
+    
+    if (matchedTemplate) {
+      setCurrentMemeImage(matchedTemplate.image);
+    } else {
+      // If no match, set to first template
+      setCurrentMemeImage(memeTemplates[0].image);
+    }
   }, [content.topText, content.bottomText]);
   
   const regenerateMeme = () => {
@@ -110,7 +110,6 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
     );
     
     const newTemplate = memeTemplates[newTemplateIndex];
-    console.log("Selected new template:", newTemplate);
     
     // Simulate loading
     setTimeout(() => {
@@ -134,7 +133,6 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
   const [bgGradient, setBgGradient] = useState(getRandomGradient());
   
   const handleImageLoad = () => {
-    console.log("Image loaded successfully:", currentMemeImage);
     setImageLoaded(true);
   };
 
