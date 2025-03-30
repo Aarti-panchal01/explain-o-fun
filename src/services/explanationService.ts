@@ -1,5 +1,5 @@
 
-import { Explanation, ExplanationMode, PersonaMode } from "../types/explanation";
+import { Explanation, ExplanationMode, PersonaMode, TikTokContent, MemeContent, TikTokStyle } from "../types/explanation";
 
 // This is a mock service that will be replaced with real API calls later
 export const generateExplanation = async (
@@ -30,12 +30,124 @@ export const generateExplanation = async (
       text = getEli5Response(topic, persona);
   }
   
+  // Generate TikTok content
+  const tikTokContent = generateTikTokContent(topic, mode, persona);
+  
+  // Generate meme content
+  const memeContent = generateMemeContent(topic, mode, persona);
+  
   return {
     text,
     mode,
     persona,
-    topic
+    topic,
+    tikTokContent,
+    memeContent
   };
+};
+
+// Generate TikTok style content
+const generateTikTokContent = (topic: string, mode: ExplanationMode, persona: PersonaMode): TikTokContent => {
+  const styles: TikTokStyle[] = ['casual', 'dramatic', 'educational', 'hype'];
+  const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+  
+  let script = '';
+  const hashtags = ['#learnontiktok', `#${topic.replace(/\s+/g, '')}`, '#explainofun', '#aceinfinity'];
+  
+  switch (persona) {
+    case 'genz':
+      script = `No cap, ${topic} is actually wild! 🤯 *shows shocked face* It's basically ${getShortExplanation(topic, mode)}. Like, that's literally so crazy! *points up* Follow for more mind-blowing facts! ✌️`;
+      hashtags.push('#mindblown', '#learnwithme');
+      break;
+    case 'professor':
+      script = `Today we're examining ${topic}. *adjusts glasses* The key concept is that ${getShortExplanation(topic, mode)}. *gestures to imaginary diagram* Remember this for your next conversation!`;
+      hashtags.push('#education', '#learnsomethingeveryday');
+      break;
+    case 'geek':
+      script = `Actually, ${topic} is fascinating from a technical perspective. *pushes up glasses* Essentially, ${getShortExplanation(topic, mode)}. *does excited hand movements* Isn't that just incredibly cool?`;
+      hashtags.push('#scienceisawesome', '#geekfacts');
+      break;
+    case 'comedian':
+      script = `So ${topic} walks into a bar... 🤣 But seriously folks, ${getShortExplanation(topic, mode)}. *exaggerated laugh* Who knew learning could be this entertaining? *winks at camera*`;
+      hashtags.push('#comedyeducation', '#funfacts');
+      break;
+    default:
+      script = `Let's talk about ${topic}! It's all about ${getShortExplanation(topic, mode)}. *points to key words* Make sure to follow for more amazing explanations!`;
+  }
+  
+  return {
+    script,
+    hashtags,
+    style: randomStyle
+  };
+};
+
+// Generate meme content
+const generateMemeContent = (topic: string, mode: ExplanationMode, persona: PersonaMode): MemeContent => {
+  // In a real implementation, this would connect to an AI image generator
+  // For now, we'll use placeholder content
+  
+  let topText = '';
+  let bottomText = '';
+  
+  switch (persona) {
+    case 'genz':
+      topText = `WHEN SOMEONE ASKS ABOUT ${topic.toUpperCase()}`;
+      bottomText = "ME: *EXPLAINS IN GEN Z*";
+      break;
+    case 'professor':
+      topText = `EXPLAINING ${topic.toUpperCase()}`;
+      bottomText = "LIKE A DISTINGUISHED PROFESSOR";
+      break;
+    case 'geek':
+      topText = `${topic.toUpperCase()} EXPLAINED`;
+      bottomText = "TECHNICALLY CORRECT IS THE BEST KIND OF CORRECT";
+      break;
+    case 'comedian':
+      topText = `I ASKED FOR A ${topic.toUpperCase()} EXPLANATION`;
+      bottomText = "GOT A COMEDY SPECIAL INSTEAD";
+      break;
+    default:
+      topText = `WHEN SOMEONE DOESN'T UNDERSTAND ${topic.toUpperCase()}`;
+      bottomText = "EXPLAIN-O-FUN: I GOT YOU";
+  }
+  
+  // Placeholder image URL - in production this would be generated
+  const imageUrl = "/placeholder-meme.jpg";
+  
+  return {
+    imageUrl,
+    topText,
+    bottomText
+  };
+};
+
+// Generate a very short explanation for TikTok
+const getShortExplanation = (topic: string, mode: ExplanationMode): string => {
+  const explanations: Record<string, Record<ExplanationMode, string>> = {
+    "black holes": {
+      "eli5": "super strong space vacuum cleaners that eat light",
+      "eli12": "collapsed stars with gravity so strong that nothing can escape",
+      "eli20": "singularities with extreme gravitational forces that distort spacetime",
+      "shower": "cosmic recycling bins that might lead to other universes"
+    },
+    "quantum physics": {
+      "eli5": "tiny particles that act like magic and can be in two places at once",
+      "eli12": "the study of the smallest things that don't follow normal rules",
+      "eli20": "the theoretical framework describing subatomic behavior and probabilities",
+      "shower": "reality's source code that only makes sense when you're not looking at it"
+    },
+    "default": {
+      "eli5": "something really cool but simple to understand",
+      "eli12": "an interesting concept with some cool science behind it",
+      "eli20": "a complex phenomenon with fascinating implications",
+      "shower": "something that makes you question reality in the shower"
+    }
+  };
+  
+  // Try to get a specific explanation for the topic, fall back to default
+  const topicExplanations = explanations[topic.toLowerCase()] || explanations["default"];
+  return topicExplanations[mode];
 };
 
 // Mock responses

@@ -1,6 +1,7 @@
 
 export type ExplanationMode = 'eli5' | 'eli12' | 'eli20' | 'shower';
 export type PersonaMode = 'professor' | 'geek' | 'genz' | 'comedian';
+export type TikTokStyle = 'casual' | 'dramatic' | 'educational' | 'hype';
 
 export interface ExplanationModeOption {
   id: ExplanationMode;
@@ -11,6 +12,13 @@ export interface ExplanationModeOption {
 
 export interface PersonaModeOption {
   id: PersonaMode;
+  name: string;
+  description: string;
+  emoji: string;
+}
+
+export interface TikTokStyleOption {
+  id: TikTokStyle;
   name: string;
   description: string;
   emoji: string;
@@ -70,9 +78,50 @@ export const personaModes: PersonaModeOption[] = [
   }
 ];
 
+export const tikTokStyles: TikTokStyleOption[] = [
+  {
+    id: 'casual',
+    name: 'Casual Vibe',
+    description: 'Relaxed, conversational style',
+    emoji: '😎'
+  },
+  {
+    id: 'dramatic',
+    name: 'Dramatic',
+    description: 'Intense and captivating delivery',
+    emoji: '🎭'
+  },
+  {
+    id: 'educational',
+    name: 'Educational',
+    description: 'Clear, informative delivery',
+    emoji: '📚'
+  },
+  {
+    id: 'hype',
+    name: 'Hype',
+    description: 'Energetic and exciting style',
+    emoji: '🔥'
+  }
+];
+
+export interface TikTokContent {
+  script: string;
+  hashtags: string[];
+  style: TikTokStyle;
+}
+
+export interface MemeContent {
+  imageUrl: string;
+  topText: string;
+  bottomText: string;
+}
+
 export interface Explanation {
   text: string;
   mode: ExplanationMode;
   persona: PersonaMode;
   topic: string;
+  tikTokContent?: TikTokContent;
+  memeContent?: MemeContent;
 }

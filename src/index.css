@@ -48,6 +48,22 @@
     @apply absolute inset-0 rounded-lg bg-gradient-to-r from-ace-purple to-ace-blue opacity-20 blur-lg -z-10;
   }
   
+  .neon-pink-glow {
+    @apply relative;
+  }
+  .neon-pink-glow::after {
+    content: "";
+    @apply absolute inset-0 rounded-lg bg-gradient-to-r from-ace-pink to-ace-orange opacity-20 blur-lg -z-10;
+  }
+  
+  .neon-green-glow {
+    @apply relative;
+  }
+  .neon-green-glow::after {
+    content: "";
+    @apply absolute inset-0 rounded-lg bg-gradient-to-r from-ace-green to-ace-blue opacity-20 blur-lg -z-10;
+  }
+  
   .card-hover {
     @apply transition-all duration-300 hover:shadow-lg hover:shadow-ace-purple/20;
   }
@@ -59,4 +75,66 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-ace-purple to-ace-blue;
   }
+  
+  .text-gradient-alt {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-ace-pink to-ace-orange;
+  }
+  
+  .floating {
+    animation: floating 3s ease-in-out infinite;
+  }
+  
+  .typing-animation::after {
+    content: '|';
+    animation: cursor-blink 1.2s step-end infinite;
+  }
+  
+  .tiktok-text {
+    @apply font-bold text-lg;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .meme-text {
+    @apply font-bold uppercase text-center;
+    text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+  }
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes floating {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes shine {
+  0% { background-position: 0%; }
+  100% { background-position: 200%; }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.animate-bounce-slow {
+  animation: bounce 5s infinite ease-in-out;
+}
+
+.animate-shine {
+  background: linear-gradient(to right, var(--primary) 0%, var(--accent) 50%, var(--primary) 100%);
+  background-size: 200% auto;
+  animation: shine 3s linear infinite;
+}
+
+.animate-breathe {
+  animation: breathe 4s infinite ease-in-out;
 }
