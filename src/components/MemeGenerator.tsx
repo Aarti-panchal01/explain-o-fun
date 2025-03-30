@@ -5,7 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Share2, RefreshCw } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import html2canvas from 'html2canvas';
+import MemeImage from './meme/MemeImage';
+import { findMatchingTemplate, getRandomTemplate, processTemplate } from '../data/memeTemplates';
+import { getRandomGradient, downloadMeme, shareMeme } from '../utils/memeUtils';
 
 interface MemeGeneratorProps {
   content: MemeContent;
@@ -18,117 +20,6 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
   const [imageLoaded, setImageLoaded] = useState(false);
   const { toast } = useToast();
   const memeRef = useRef<HTMLDivElement>(null);
-  
-  // List of meme templates with different top and bottom texts
-  const memeTemplates = [
-    {
-      topText: `WHEN SOMEONE ASKS ABOUT ${topic.toUpperCase()}`,
-      bottomText: "ME: *EXPLAINS WITH ADVANCED SCIENCE*",
-      image: "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png",
-      category: "explanation"
-    },
-    {
-      topText: `${topic.toUpperCase()}? OH YOU MEAN`,
-      bottomText: "THAT THING NOBODY UNDERSTANDS",
-      image: "/lovable-uploads/d44eb7af-27a5-45b3-821f-9667db43e929.png",
-      category: "confusion"
-    },
-    {
-      topText: `TRYING TO UNDERSTAND ${topic.toUpperCase()}`,
-      bottomText: "MY BRAIN: UNDERSTANDABLE, HAVE A NICE DAY",
-      image: "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png",
-      category: "confusion"
-    },
-    {
-      topText: `TEACHER: EXPLAIN ${topic.toUpperCase()}`,
-      bottomText: "ME: *PANICS IN CONFUSION*",
-      image: "/lovable-uploads/d44eb7af-27a5-45b3-821f-9667db43e929.png",
-      category: "education"
-    },
-    {
-      topText: `NOBODY: ABSOLUTELY NOBODY:`,
-      bottomText: `ME: LET ME TELL YOU ABOUT ${topic.toUpperCase()}`,
-      image: "/lovable-uploads/98765221-8abb-4cba-af59-9d5966ad2101.png",
-      category: "explanation"
-    },
-    {
-      topText: `THEY SAID ${topic.toUpperCase()} WAS SIMPLE`,
-      bottomText: "THEY LIED",
-      image: "/lovable-uploads/93923333-0797-4f95-b898-b9e8583476fb.png",
-      category: "confusion"
-    },
-    {
-      topText: `WHAT IS AI?? OH YOU MEAN`,
-      bottomText: "THAT THING NOBODY UNDERSTANDS",
-      image: "/lovable-uploads/6628eab6-74f2-479d-b393-b54266c3c6cd.png",
-      category: "ai"
-    },
-    {
-      topText: `EXPLAINING WHAT IS ${topic.toUpperCase()}?`,
-      bottomText: `LIKE A DISTINGUISHED PROFESSOR`,
-      image: "/lovable-uploads/c08b02c6-65f6-4d2c-ab9a-ef1037575f93.png",
-      category: "professor"
-    },
-    {
-      topText: `EXPLAINING WHAT IS ${topic.toUpperCase()}`,
-      bottomText: `LIKE A DISTINGUISHED PROFESSOR`,
-      image: "/lovable-uploads/2c12f6fb-c779-4518-86b8-ef2fda72f6d5.png",
-      category: "professor"
-    }
-  ];
-  
-  // Function to generate random background color
-  const getRandomGradient = () => {
-    const gradients = [
-      'from-blue-500 to-purple-500',
-      'from-green-400 to-blue-500',
-      'from-yellow-400 to-orange-500',
-      'from-pink-500 to-red-500',
-      'from-purple-500 to-indigo-500',
-      'from-indigo-500 to-blue-400',
-      'from-red-500 to-orange-400',
-    ];
-    return gradients[Math.floor(Math.random() * gradients.length)];
-  };
-  
-  // Find a template that matches the content and persona
-  const findMatchingTemplate = (topText: string, bottomText: string) => {
-    // First try to find an exact match
-    let matchedTemplate = memeTemplates.find(template => 
-      template.topText === topText && template.bottomText === bottomText
-    );
-    
-    // If no exact match, check for templates with matching keywords
-    if (!matchedTemplate) {
-      // Check for distinguished professor templates
-      if (bottomText.includes("DISTINGUISHED PROFESSOR")) {
-        matchedTemplate = memeTemplates.find(template => 
-          template.category === "professor"
-        );
-      }
-      // Check for AI-specific templates
-      else if (topText.includes("AI") || bottomText.includes("AI")) {
-        matchedTemplate = memeTemplates.find(template => 
-          template.category === "ai"
-        );
-      }
-      // Check for confusion-related templates
-      else if (topText.includes("UNDERSTAND") || bottomText.includes("CONFUSED")) {
-        matchedTemplate = memeTemplates.find(template => 
-          template.category === "confusion"
-        );
-      }
-      // Check for explanation-related templates
-      else if (topText.includes("EXPLAIN") || bottomText.includes("EXPLAIN")) {
-        matchedTemplate = memeTemplates.find(template => 
-          template.category === "explanation"
-        );
-      }
-    }
-    
-    // If still no match, use the first template as fallback
-    return matchedTemplate || memeTemplates[0];
-  };
   
   // Initialize with a template that matches the initial content
   const initialTemplate = findMatchingTemplate(initialContent.topText, initialContent.bottomText);
@@ -148,23 +39,16 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
     setIsRegenerating(true);
     setImageLoaded(false);
     
-    // Get a random meme template different from current one
-    let newTemplateIndex;
-    do {
-      newTemplateIndex = Math.floor(Math.random() * memeTemplates.length);
-    } while (
-      memeTemplates[newTemplateIndex].topText === content.topText && 
-      memeTemplates[newTemplateIndex].bottomText === content.bottomText
-    );
-    
-    const newTemplate = memeTemplates[newTemplateIndex];
+    // Get a random template different from the current one
+    const newTemplate = getRandomTemplate(content.topText, content.bottomText, topic);
+    const processedTemplate = processTemplate(newTemplate, topic);
     
     // Simulate loading
     setTimeout(() => {
       setContent({
         ...content,
-        topText: newTemplate.topText,
-        bottomText: newTemplate.bottomText
+        topText: processedTemplate.topText,
+        bottomText: processedTemplate.bottomText
       });
       setCurrentMemeImage(newTemplate.image);
       setBgGradient(getRandomGradient());
@@ -185,113 +69,69 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
   const handleImageError = () => {
     console.error("Failed to load image:", currentMemeImage);
     // Fallback to a default image if the current one fails to load
-    if (currentMemeImage !== memeTemplates[0].image) {
-      setCurrentMemeImage(memeTemplates[0].image);
+    if (currentMemeImage !== initialTemplate.image) {
+      setCurrentMemeImage(initialTemplate.image);
     } else {
       setImageLoaded(true); // Force show something rather than spinner forever
     }
   };
 
-  const downloadMeme = async () => {
-    if (!memeRef.current) return;
-
-    try {
-      const canvas = await html2canvas(memeRef.current, {
-        allowTaint: true,
-        useCORS: true,
-        backgroundColor: null,
-        scale: 2,
-      });
-      
-      const dataUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `${topic.replace(/\s+/g, '-')}-meme.png`;
-      link.href = dataUrl;
-      link.click();
-      
-      toast({
-        title: "Meme downloaded",
-        description: "Your AI meme has been saved.",
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error('Error downloading meme:', error);
-      toast({
-        variant: "destructive",
-        title: "Download failed",
-        description: "There was a problem saving your meme.",
-        duration: 3000,
-      });
-    }
+  const handleDownloadMeme = () => {
+    downloadMeme(
+      memeRef.current,
+      topic,
+      () => {
+        toast({
+          title: "Meme downloaded",
+          description: "Your AI meme has been saved.",
+          duration: 3000,
+        });
+      },
+      (error) => {
+        toast({
+          variant: "destructive",
+          title: "Download failed",
+          description: "There was a problem saving your meme.",
+          duration: 3000,
+        });
+      }
+    );
   };
 
-  const shareMeme = async () => {
-    if (!memeRef.current) return;
-
-    try {
-      const canvas = await html2canvas(memeRef.current, {
-        allowTaint: true,
-        useCORS: true, 
-        backgroundColor: null,
-        scale: 2,
-      });
-      
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          throw new Error('Failed to create blob');
-        }
-        
-        try {
-          // Try to use the Web Share API if available
-          if (navigator.share) {
-            const file = new File([blob], `${topic.replace(/\s+/g, '-')}-meme.png`, { 
-              type: 'image/png' 
-            });
-            
-            await navigator.share({
-              title: `${topic} Meme`,
-              text: 'Check out this AI-generated meme!',
-              files: [file]
-            });
-          } else {
-            // Fallback to clipboard
-            await navigator.clipboard.write([
-              new ClipboardItem({
-                'image/png': blob
-              })
-            ]);
-            
-            toast({
-              title: "Copied to clipboard",
-              description: "Your AI meme has been copied to clipboard.",
-              duration: 3000,
-            });
-          }
-        } catch (error) {
-          console.error('Error sharing:', error);
-          // Fallback to downloading if sharing fails
-          const dataUrl = canvas.toDataURL('image/png');
-          const link = document.createElement('a');
-          link.download = `${topic.replace(/\s+/g, '-')}-meme.png`;
-          link.href = dataUrl;
-          link.click();
-          
-          toast({
-            title: "Meme downloaded instead",
-            description: "Sharing failed, but we saved your meme as a file.",
-            duration: 3000,
-          });
-        }
-      }, 'image/png');
-    } catch (error) {
-      console.error('Error preparing to share meme:', error);
-      toast({
-        variant: "destructive",
-        title: "Sharing failed",
-        description: "There was a problem sharing your meme.",
-        duration: 3000,
-      });
-    }
+  const handleShareMeme = () => {
+    shareMeme(
+      memeRef.current,
+      topic,
+      () => {
+        toast({
+          title: "Meme shared",
+          description: "Your AI meme has been shared.",
+          duration: 3000,
+        });
+      },
+      () => {
+        toast({
+          title: "Copied to clipboard",
+          description: "Your AI meme has been copied to clipboard.",
+          duration: 3000,
+        });
+      },
+      () => {
+        toast({
+          title: "Meme downloaded instead",
+          description: "Sharing failed, but we saved your meme as a file.",
+          duration: 3000,
+        });
+      },
+      (error) => {
+        toast({
+          variant: "destructive",
+          title: "Sharing failed",
+          description: "There was a problem sharing your meme.",
+          duration: 3000,
+        });
+      }
+    );
   };
   
   return (
@@ -312,42 +152,15 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
         </Button>
       </div>
       <CardContent className="p-4 space-y-4">
-        <div 
-          ref={memeRef}
-          className="relative bg-black/50 rounded-lg overflow-hidden aspect-square max-w-xs mx-auto transition-all duration-300 transform hover:scale-105"
-        >
-          {/* Background gradient */}
-          <div className={`absolute inset-0 bg-gradient-to-br ${bgGradient} opacity-20`}></div>
-          
-          {/* Actual meme image */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            {!imageLoaded && (
-              <div className="w-full h-full flex items-center justify-center bg-gray-900/70">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
-              </div>
-            )}
-            {currentMemeImage && (
-              <img 
-                src={currentMemeImage} 
-                alt="AI generated meme" 
-                className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                onLoad={handleImageLoad}
-                onError={handleImageError}
-              />
-            )}
-          </div>
-          
-          {/* Meme text */}
-          <div className="absolute inset-x-0 top-4 p-2 text-center z-10">
-            <p className="meme-text text-white font-bold uppercase text-lg md:text-xl text-shadow-lg">
-              {content.topText}
-            </p>
-          </div>
-          <div className="absolute inset-x-0 bottom-4 p-2 text-center z-10">
-            <p className="meme-text text-white font-bold uppercase text-lg md:text-xl text-shadow-lg">
-              {content.bottomText}
-            </p>
-          </div>
+        <div ref={memeRef}>
+          <MemeImage
+            imageUrl={currentMemeImage}
+            topText={content.topText}
+            bottomText={content.bottomText}
+            bgGradient={bgGradient}
+            onImageLoad={handleImageLoad}
+            onImageError={handleImageError}
+          />
         </div>
         
         <div className="flex justify-between">
@@ -366,7 +179,7 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
               variant="outline" 
               size="sm" 
               className="text-sm gap-1"
-              onClick={downloadMeme}
+              onClick={handleDownloadMeme}
             >
               <Download className="w-3 h-3" />
               <span>Download</span>
@@ -375,7 +188,7 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
               variant="outline" 
               size="sm" 
               className="text-sm gap-1"
-              onClick={shareMeme}
+              onClick={handleShareMeme}
             >
               <Share2 className="w-3 h-3" />
               <span>Share</span>
