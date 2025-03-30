@@ -55,6 +55,11 @@ const MemeGenerator: FC<MemeGeneratorProps> = ({ content: initialContent, topic 
       topText: `WHAT IS AI?? OH YOU MEAN`,
       bottomText: "THAT THING NOBODY UNDERSTANDS",
       image: "/lovable-uploads/6628eab6-74f2-479d-b393-b54266c3c6cd.png"
+    },
+    {
+      topText: `EXPLAINING WHAT IS ${topic.toUpperCase()}?`,
+      bottomText: `LIKE A DISTINGUISHED PROFESSOR`,
+      image: "/lovable-uploads/c08b02c6-65f6-4d2c-ab9a-ef1037575f93.png"
     }
   ];
   
