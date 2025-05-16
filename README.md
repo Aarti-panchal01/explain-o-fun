@@ -15,7 +15,7 @@ Explain-O-Fun is an AI-powered tool designed to break down complex topics into e
 - **Backend:** AI/ML Models (if applicable)  
 
 ## 🔗 Live Demo  
-👉 [Try it out here!](https://preview--explain-o-fun.lovable.app/)  
+👉 [Try it out here!](https://explain-o-fun.lovable.app/)  
 
 ## 🤝 Contributing  
 Contributions are welcome! If you’d like to improve Explain-O-Fun, feel free to fork the repository, make changes, and submit a pull request.  
