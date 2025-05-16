@@ -1,9 +1,8 @@
-
 import { FC, useState, useRef, useEffect } from 'react';
 import { TikTokContent } from '../types/explanation';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Volume2, Download, Share2, Play, RefreshCw, Heart, MessageSquare, BookmarkIcon, Music, Sparkles, Fire, Check } from "lucide-react";
+import { Volume2, Download, Share2, Play, RefreshCw, Heart, MessageSquare, BookmarkIcon, Music, Sparkles, Flame, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface TikTokPreviewProps {
@@ -241,7 +240,7 @@ const TikTokPreview: FC<TikTokPreviewProps> = ({ content, topic }) => {
 
             <div className="mt-4 bg-black/30 p-3 rounded-lg">
               <div className="flex items-center gap-2">
-                <Fire className="w-4 h-4 text-orange-500" />
+                <Flame className="w-4 h-4 text-orange-500" />
                 <span className="text-sm font-bold">Viral potential: 87%</span>
               </div>
               <div className="h-2 w-full bg-gray-700 rounded-full overflow-hidden mt-2">
